@@ -1,11 +1,22 @@
+/*
+ * Universidad de Valle de Guatemala
+ * Organizacion de Computadoras y Assembler - Seccion 10
+ * Christopher Garcia - 20541
+ * Laboratorio#9
+*/
 .text
 .align 2
 
+/*----------------Inicio de subrutinas---------------*/
+
+//Subrutina encargada de imprimir el menú
+//Esta subrutina llamaba a la subrutina _print provista por el catedrático
+//Y se imprimía el valor deseado que en este caso fueron las opciones del menú
 .global printMenu
 printMenu:
     PUSH {LR}
 
-    //Mensaje
+    //Mensaje inicial (Título)
     ldr r0,=Salto
     bl puts
     ldr r1,=Titulo1
@@ -16,49 +27,44 @@ printMenu:
     //Mensaje
     ldr r1,=Seleccion
     bl _print
-    //Mensaje
+    //Mensaje Suma
     ldr r1,=SSuma
     bl _print
-    //Mensaje
+    //Mensaje Multiplicación
     ldr r1,=SMul
     bl _print
-    //Mensaje
+    //Mensaje Módulo
     ldr r1,=SMod
     bl _print
-    //Mensaje
+    //Mensaje Valor almacenado
     ldr r1,=SEqu
     bl _print
-    //Mensaje
+    //Mensaje Potencia
     ldr r1,=SPot
     bl _print
-    //Mensaje
+    //Mensaje Cadena 1
     ldr r1,=SCad1
     bl _print
-    //Mensaje
+    //Mensaje Cadena 2
     ldr r1,=SCad2
     bl _print
-    //Mensaje
+    //Mensaje Concatenar cadenas
     ldr r1,=SCon
     bl _print
-    //Mensaje
+    //Mensaje Salida instruccion
     ldr r1,=SSal
     bl _print
 
+    //Salto de linea para mejorar la estética
     ldr r0,=Salto
     bl puts
     
+    //Salida de la subrutina con SWI
     SWI 0
     POP {LR}
     BX LR 
 
-.global Verificador
-Verificador:
-  PUSH {LR} 
-
-  SWI 0
-  POP {LR}
-  BX LR
-
+//Subrutina _print obtenida de canvas, su función es imprimir un valor a pantalla con SWI
 .global _print
 _print:
   PUSH {LR}     @ copy of LR because I will call _strlen here
@@ -71,13 +77,7 @@ _print:
   POP {LR}
   BX LR /*-- _print --*/
 
-  /* ************
- * _strlen
- * ************
- * Checks the length of a CR terminated string (Enter)
- * IN: R1 - string pointer
- * OUT: R8 - string length pointer
- */
+//Subrutina _strlen obtenida de canvas, utilizada para poder conocer el largo de una cadena
 .global _strlen
 _strlen:
   MOV R0,R1
@@ -96,6 +96,7 @@ endOfLine:
   SWI 0
   BX LR /*-- _strlen --*/
 
+//Subrutina _keybread obtenida de canvas, encargada de leer entrada de teclado con SWI
 .global _keybread
 _keybread:
 @ Lee el caracter
@@ -106,6 +107,7 @@ _keybread:
   SWI 0
   BX LR
 
+//Subrutina _char2Num obtenida de canvas, encargada de convertir .asciz a .word
 .global _char2Num
 _char2Num:
   charPointer .req R0
@@ -116,7 +118,8 @@ _char2Num:
   SUBLE R0,#0x30    @ subtract 0x30 only if it's a digit
   STRLE R0,[valPointer] @ store value only if it's a digit
   MOVLE R11,#1 //Registro sin utilizar que se modifica para comprobar que el 
-              //dato ingresado es un dígito, esto como parte de la programación defensiva
+              //dato ingresado es un dígito, esto como parte de la programación defensiva 
+              //(Modificación hecha a diferencia de la original)
   .unreq charPointer
   .unreq valPointer
   SWI 0
@@ -128,7 +131,7 @@ _char2Num:
 .global Sumatoria
 Sumatoria:
   PUSH {LR}
-  /*Se lee el dato ingresado por el usuario*/
+  /*Se lee el dato ingresado por el usuario, este es verificado como parte de la programación defensiva*/
   Verificacion:
     mov r11,#0
     ldr r0,=Ingreso
@@ -158,6 +161,7 @@ Sumatoria:
   ldr r0,=Impresion
   bl printf
 
+  //Salida de la subrutina con SWI
   SWI 0
   POP {LR}
   BX LR
@@ -166,7 +170,7 @@ Sumatoria:
 .global MultiplicacionOpe
 MultiplicacionOpe:
   PUSH {LR}
-
+  /*Se lee el dato ingresado por el usuario, este es verificado como parte de la programación defensiva*/
   Verificacion2:
     mov r11,#0
     /*Se lee el dato ingresado por el usuario*/
@@ -182,9 +186,9 @@ MultiplicacionOpe:
     bleq puts
     beq Verificacion2
 
-  ldr r1, =Resultado
+  ldr r1,=Resultado
   ldr r0,[r1]
-  mul r0,r9
+  mul r0,r9,r0
   mov r9,r0
   str r0,[r1]
 
@@ -192,11 +196,8 @@ MultiplicacionOpe:
   ldr r1,[r1]
   ldr r0,=Impresion
   bl printf
-
-  /*Salto de linea para mejorar la estética*/
-  /*ldr r0,=Salto
-  bl puts*/
-
+  
+  //Salida de la subrutina con SWI
   SWI 0
   POP {LR}
   BX LR
@@ -205,7 +206,7 @@ MultiplicacionOpe:
 .global ModuloOpe
 ModuloOpe:
   PUSH {LR}
-
+  /*Se lee el dato ingresado por el usuario, este es verificado como parte de la programación defensiva*/
   Verificacion3:
     mov r11,#0
     /*Se lee el dato ingresado por el usuario*/
@@ -221,24 +222,29 @@ ModuloOpe:
     bleq puts
     beq Verificacion3
 
+  /*Se obtiene y guarda el valor del .word*/
   ldr r1,=Resultado
   ldr r0,[r1]
+
+  //Contador para saber cuando detener el loop posterior
   mov r6,#0
 
-  loopRestaDiv: //Loop obtenido de ejemplo sobre divisiones provisto para un laboratorio
+  loopRestaDiv: //Loop obtenido de ejemplo sobre divisiones provisto para un laboratorio/ejercicio anterior
     subs r9,r0
     add r6,#1
     cmp r9,r0
     bge loopRestaDiv
     
+  /*Se obtiene y guarda el valor del resultado*/
   str r9,[r1]
     
-  //Imprimiendo 
+  //Impresión del resultado
   ldr r1,=Resultado
   ldr r1,[r1]
   ldr r0,=Impresion
   bl printf
 
+  //Salida de la subrutina con SWI
   SWI 0
   POP {LR}
   BX LR
@@ -247,7 +253,7 @@ ModuloOpe:
 .global pote
 pote:
   PUSH {LR}
-
+  /*Se lee el dato ingresado por el usuario, este es verificado como parte de la programación defensiva*/
   Verificacion4:
     mov r11,#0
     ldr r0,=Tit1
@@ -265,9 +271,10 @@ pote:
     bleq puts
     beq Verificacion4
 
+  //Impresión de título informativo
   ldr r0,=Tit2
   bl puts
-
+  /*Se lee el dato ingresado por el usuario, este es verificado como parte de la programación defensiva*/
   Verificacion5:
     mov r11,#0 
     ldr r0,=Ingreso4
@@ -282,12 +289,14 @@ pote:
     bleq puts
     beq Verificacion5
   
-  ldr r0,=Num1
+  /*Se obtienen ambos valores*/
+  ldr r0,=Num1 //Base
   ldr r1,[r0]
-  ldr r0,=Num2
+  ldr r0,=Num2 //Potencia
   ldr r2,[r0]
-  ldr r3,=ResultadoP
+  ldr r3,=ResultadoP //Almacen del resultado
   
+  //Se realiza un loop para multiplicar la base por sí misma las veces necesarias
   mov r9,r1
   mov r1,#1
   mov r10,#1
@@ -298,11 +307,14 @@ pote:
     mulle r1,r9,r1
     ble loopPo
 
+  //Se obtiene y almacena el resultado
   str r1,[r3]
 
+  //Se imprime el resultado
 	ldr r0,=Impresion
 	bl printf
 
+  //Salida de la subrutina con SWI
   SWI 0
   POP {LR}
   BX LR
@@ -316,11 +328,14 @@ Igual:
   ldr r0,=Impresion
   bl printf
   
+  //Salida de la subrutina con SWI
   SWI 0
   POP {LR}
   BX LR
 
-//LECTURAS PARA CONCATENACION (FALTA)
+//LECTURAS PARA CONCATENACION
+
+//Subrutina Lectura (Modificación de archivo en canvas), lee la primer cadena del usuario
 .global Lectura
 Lectura:
   PUSH {LR}
@@ -332,11 +347,20 @@ Lectura:
   MOV R0, #0		@0=stdin (teclado)
   MOV R2, #50		@longitud de la cadena: 10 caracteres + enter
   LDR R1, =string	@apunta a la variable donde se guarda
+  SWI 0
+
+@ Muestra la cadena leida
+  MOV R7, #4		@4=llamado a "write" swi
+  MOV R0, #1		@1=stdout (monitor)
+  MOV R2, #50 	@longitud de la cadena: 10 caracteres + enter
+  LDR R1, =string	@apunta a la cadena
+  SWI 0
 
   SWI 0
   POP {LR}
   BX LR
 
+//Subrutina Lectura (Modificación de archivo en canvas), lee la primer cadena del usuario
 .global Lectura2
 Lectura2:
   PUSH {LR}
@@ -348,11 +372,70 @@ Lectura2:
   MOV R0, #0		@0=stdin (teclado)
   MOV R2, #50		@longitud de la cadena: 10 caracteres + enter
   LDR R1, =string2	@apunta a la variable donde se guarda
+  SWI 0
+
+@ Muestra la cadena leida
+  MOV R7, #4		@4=llamado a "write" swi
+  MOV R0, #1		@1=stdout (monitor)
+  MOV R2, #50 	@longitud de la cadena: 10 caracteres + enter
+  LDR R1, =string2	@apunta a la cadena
+  SWI 0
 
   SWI 0
   POP {LR}
   BX LR
 
+//Se concatenan ambas cadenas
+.global Concate     //Se realiza una modificación a la subrutina _strlen para poder lograr esto
+Concate:
+  PUSH {LR}
+  ldr r0,=string
+  length .req R5
+  MOV length,#0
+  countchars2:
+    LDRB R4,[R0],#1
+    CMP R4,#'\n'      @CR to check end of line
+    BEQ endOfLine
+    ADD length,#1
+    B countchars
+  endOfLine2:
+    ADD length,#1
+    STR length,[R6]
+  .unreq length
+
+  //Se cargan las cadenas y un lugar donde guardar la concatenación
+  ldr r6,[r6]
+  sub r6,#1
+  ldr r7,=string
+  ldr r8,=string2
+  ldr r9,=string3
+
+  //Se verifica el largo de la cadena
+  loopVerilength:
+    ldrb r3, [r7], #1
+    strb r3, [r9], #1
+    subs r12,#1
+    bne loopVerilength
+
+  //Se utiliza para comprobar que las cadenas se han podido concatenar
+  loopVeriEspacios:
+    ldrb r3, [r8], #1
+    strb r3, [r9], #1
+    cmp r3,#0
+    bne loopVeriEspacios
+  
+  //Se imprime el resultado
+  ldr r1,=string3
+  bl _print
+
+  /*Salto de linea para mejorar la estética*/
+  ldr r0,=Salto
+  bl puts
+
+  //Salida de la subrutina con SWI
+  SWI 0
+  POP {LR}
+  BX LR
 
 /*--------------------------------DATOS UTILIZADOS--------------------------------*/
 .data
@@ -369,8 +452,8 @@ SCad1: .asciz "(1)-----> Ingresar primera cadena de caracteres\n"
 SCad2: .asciz "(2)-----> Ingresar segunda cadena de caracteres\n"
 SCon: .asciz "(C)-----> Concatenar cadenas de caracteres 1 y 2\n"
 SSal: .asciz "(q)-----> Mostrar mensaje de despedida y salir al sistema operativo\n"
-Inform1: .asciz "Ingresa tu primer cadena\n"
-Inform2: .asciz "Ingresa tu segunda cadena\n"
+Inform1: .asciz "Ingresa tu primer cadena"
+Inform2: .asciz "Ingresa tu segunda cadena"
 Tit1: .asciz "Ingresa la base"
 Tit2: .asciz "Ingresa la potencia"
 ErrorDato: .asciz "Error, el dato ingresado no es un numero"
@@ -387,8 +470,9 @@ Num2: .word 0
 Num3: .word 0
 Cont1: .word 2
 strLen4print: .word 0
-string: .asciz "                "
-string2: .asciz "                "
+string: .asciz "                   "
+string2: .asciz "                   "
+string3: .asciz "                   "
 Ingreso: .asciz "           "
 Ingreso2: .asciz "           "
 Ingreso3: .asciz "           "

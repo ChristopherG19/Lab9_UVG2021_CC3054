@@ -159,29 +159,25 @@ main:
 
     PriCar:
         /*Se llama a la subrutina que realiza la lectura de la primera cadena*/
-        bl Lectura        
-
+        bl Lectura  
         /*Salto de linea para mejorar la estética*/
         ldr r0,=Salto
-        bl puts
-
+        bl puts      
         /*Se llama al loop del inicio para continuar utilizando la calculadora*/
         b LoopCalcu
 
     SegCar:
         /*Se llama a la subrutina que realiza la lectura de la segunda cadena*/
         bl Lectura2
-    
         /*Salto de linea para mejorar la estética*/
         ldr r0,=Salto
         bl puts
-
         /*Se llama al loop del inicio para continuar utilizando la calculadora*/
         b LoopCalcu
 
     Conca:
         /*Se llama a la subrutina que realiza la concatenación de ambas cadenas*/
-        //bl Veri
+        bl Concate
 
         /*Salto de linea para mejorar la estética*/
         ldr r0,=Salto
@@ -191,7 +187,6 @@ main:
         b LoopCalcu
 
     SalidaF:
-
         /*Impresión de mensaje de despedida*/
         ldr r0,=Fin
         bl puts
